@@ -3,7 +3,10 @@
 # FindTM extension
 FindTM_ext is an open source Chrome browser extension that allows you to check the link accessibility without opening it in the browser.
 This extension helps users from DIFFerent countries to save time
- 
+
+## Donation
+[https://nowpayments.io/donation/helohi](https://nowpayments.io/donation/helohi) - Please help us to add this extenstion to chrome extenstion store (need 5$ for developer account)
+
 ## Installation Guide
 In order to install this extension to your Chrome Browser you need to:
 1. Go to [Releases](https://github.com/Helohi/FindTM_ext/releases) page and download the latest version *FindTM_ext.zip*
@@ -28,4 +31,4 @@ In order to contribute you need to:
 2. Make changes to code
 3. Create new branch
 4. Commit your work and push it to new branch
-5. Open the Pull Request (Navigate to the original repository on GitHub. You should see a prompt to Compare & pull request) 
+5. Open the Pull Request (Navigate to the original repository on GitHub. You should see a prompt to Compare & pull request)
