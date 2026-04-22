@@ -2,17 +2,35 @@
   const ATTR = 'data-link-check';
   const ORIG_TITLE = 'data-orig-title';
 
-  function getRealUrl(href) {
+  // Per-page, non-persistent cache. Dies with the tab.
+  const domainCache = new Map();      // hostname -> result
+  const inFlightDomains = new Map();  // hostname -> Array<link elements>
+
+  function isGoogleDomain(hostname) {
+    return /^(([^.]+\.)?)google\.[a-z]{2,}(\.[a-z]{2,})?$/i.test(hostname);
+  }
+
+  function getTarget(href) {
     try {
       const url = new URL(href, window.location.href);
       if (url.hostname.startsWith('www.google.') && url.pathname === '/url') {
         const q = url.searchParams.get('q');
         if (q) return q;
       }
-      if (!url.protocol.startsWith('http')) return null;
-      return url.toString();
+      return href;
     } catch {
       return null;
+    }
+  }
+
+  function shouldSkip(urlStr) {
+    try {
+      const url = new URL(urlStr, window.location.href);
+      if (!url.protocol.startsWith('http')) return true;
+      if (isGoogleDomain(url.hostname)) return true;
+      return false;
+    } catch {
+      return true;
     }
   }
 
@@ -37,36 +55,77 @@
     link.style.setProperty('color', colors[state] || colors.unknown, 'important');
   }
 
+  function applyResult(link, res) {
+    if (res.accessible) {
+      link.setAttribute(ATTR, 'ok');
+      paint(link, 'ok');
+      updateTitle(link, 'Accessible', res.status, res.timing);
+    } else {
+      link.setAttribute(ATTR, 'fail');
+      paint(link, 'fail');
+      updateTitle(link, 'Inaccessible', res.status, res.timing);
+    }
+  }
+
   function check(link) {
     if (link.hasAttribute(ATTR)) return;
 
-    const target = getRealUrl(link.href);
-    if (!target) {
+    const target = getTarget(link.href);
+    if (!target || shouldSkip(target)) {
       link.setAttribute(ATTR, 'skip');
       return;
     }
 
+    let domain;
+    try { domain = new URL(target).hostname; } catch { return; }
+
+    // Cache hit
+    if (domainCache.has(domain)) {
+      applyResult(link, domainCache.get(domain));
+      return;
+    }
+
+    // Same domain already being checked — queue this link
+    if (inFlightDomains.has(domain)) {
+      inFlightDomains.get(domain).push(link);
+      link.setAttribute(ATTR, 'pending');
+      paint(link, 'pending');
+      updateTitle(link, 'Pending', 0, undefined);
+      return;
+    }
+
+    // Start new check
+    inFlightDomains.set(domain, []);
     link.setAttribute(ATTR, 'pending');
     paint(link, 'pending');
     updateTitle(link, 'Pending', 0, undefined);
 
     chrome.runtime.sendMessage({ action: 'checkUrl', url: target }, (res) => {
+      // Resolve waiting links for this domain
+      const waiting = inFlightDomains.get(domain) || [];
+      inFlightDomains.delete(domain);
+
+      const result = (chrome.runtime.lastError || !res)
+        ? { accessible: false, status: 0, timing: 0, error: 'Extension error' }
+        : res;
+
+      // Treat extension-level failures as Unknown (yellow)
       if (chrome.runtime.lastError || !res) {
         link.setAttribute(ATTR, 'unknown');
         paint(link, 'unknown');
-        updateTitle(link, 'Unknown', 0, undefined);
+        updateTitle(link, 'Unknown', 0, 0);
+
+        waiting.forEach(l => {
+          l.setAttribute(ATTR, 'unknown');
+          paint(l, 'unknown');
+          updateTitle(l, 'Unknown', 0, 0);
+        });
         return;
       }
 
-      if (res.accessible) {
-        link.setAttribute(ATTR, 'ok');
-        paint(link, 'ok');
-        updateTitle(link, 'Accessible', res.status, res.timing);
-      } else {
-        link.setAttribute(ATTR, 'fail');
-        paint(link, 'fail');
-        updateTitle(link, 'Inaccessible', res.status, res.timing);
-      }
+      domainCache.set(domain, result);
+      applyResult(link, result);
+      waiting.forEach(l => applyResult(l, result));
     });
   }
 
