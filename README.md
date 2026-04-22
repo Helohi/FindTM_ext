@@ -1,6 +1,8 @@
+[English](README.md) | [Turkmen](README.tm.md) | [Russian](README.ru.md) | [Farsi](README.fa.md)
+
 # FindTM extension
 FindTM_ext is an open source Chrome browser extension that allows you to check the link accessibility without opening it in the browser.
-This extension helps users from DIFFerent counties to save time
+This extension helps users from DIFFerent countries to save time
  
 ## Installation Guide
 In order to install this extension to your Chrome Browser you need to:
@@ -18,4 +20,12 @@ In order to install this extension to your Chrome Browser you need to:
 
 7. Choose the extracted folder from task [2] (Folder should contain "*manifest.json*") (**FindTM_ext**)
  
-8. All done! Go to [google.com](https://google.com/search?q=FindTM_ext) and search something!
+8. All done! Go to [google.com](https://google.com/search?q=FindTM_ext+Helohi+github) and search something!
+
+## Contribution
+In order to contribute you need to:
+1. Fork this repository
+2. Make changes to code
+3. Create new branch
+4. Commit your work and push it to new branch
+5. Open the Pull Request (Navigate to the original repository on GitHub. You should see a prompt to Compare & pull request) 
