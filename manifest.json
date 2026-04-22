@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "FindTM | Link Accessibility Checker",
+  "version": "1.0",
+  "description": "Requests Google search links and colors them to green (accessible), grey (unprocessable) and red (inaccessible)",
+  "permissions": ["activeTab"],
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["*://www.google.com/search*"],
+      "include_globs": ["*://www.google.*/search*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
